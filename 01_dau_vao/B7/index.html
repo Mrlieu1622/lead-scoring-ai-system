@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Lead Scoring & Human-in-the-loop Verification</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- SheetJS (xlsx) for client-side Excel parse & export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="glass-bg"></div>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fa-solid fa-brain-circuit logo-icon"></i>
+                <div class="logo-text">
+                    <h1>AI LEAD SCORING</h1>
+                    <span>HUMAN-IN-THE-LOOP SYSTEM</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="gsheet-import-group">
+                    <input type="text" id="gsheet-url" placeholder="Nhập link Google Sheets..." value="https://docs.google.com/spreadsheets/d/1hRvHE6RXm1peVG07avfApPEHocOcPld9IA94hE3vUGE/edit?gid=0#gid=0">
+                    <button class="btn btn-secondary" id="gsheet-fetch-btn">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> Tải & Chấm Điểm
+                    </button>
+                </div>
+                <label for="excel-upload" class="btn btn-primary">
+                    <i class="fa-solid fa-file-import"></i> Nạp Dữ Liệu (Excel)
+                </label>
+                <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv" style="display: none;">
+            </div>
+        </header>
+
+        <!-- KPI Cards -->
+        <section class="kpi-container">
+            <div class="kpi-card" id="kpi-total">
+                <div class="kpi-icon total-bg"><i class="fa-solid fa-users"></i></div>
+                <div class="kpi-info">
+                    <h3>Tổng số Lead</h3>
+                    <p class="kpi-value" id="val-total">0</p>
+                </div>
+            </div>
+            <div class="kpi-card" id="kpi-vip">
+                <div class="kpi-icon vip-bg"><i class="fa-solid fa-crown"></i></div>
+                <div class="kpi-info">
+                    <h3>VIP/Siêu Tiềm Năng</h3>
+                    <p class="kpi-value" id="val-vip">0</p>
+                </div>
+            </div>
+            <div class="kpi-card" id="kpi-potential">
+                <div class="kpi-icon pot-bg"><i class="fa-solid fa-circle-check"></i></div>
+                <div class="kpi-info">
+                    <h3>Tiềm Năng</h3>
+                    <p class="kpi-value" id="val-potential">0</p>
+                </div>
+            </div>
+            <div class="kpi-card" id="kpi-junk">
+                <div class="kpi-icon junk-bg"><i class="fa-solid fa-trash-can"></i></div>
+                <div class="kpi-info">
+                    <h3>Không Tiềm Năng</h3>
+                    <p class="kpi-value" id="val-junk">0</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Filter Bar -->
+            <div class="workspace-header">
+                <div class="filters">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-input" placeholder="Tìm tên, SĐT hoặc nhu cầu...">
+                    </div>
+                    <div class="select-box">
+                        <select id="filter-classification">
+                            <option value="all">Tất cả phân loại</option>
+                            <option value="VIP/Siêu tiềm năng">VIP/Siêu tiềm năng</option>
+                            <option value="Tiềm năng">Tiềm năng</option>
+                            <option value="Không tiềm năng">Không tiềm năng</option>
+                        </select>
+                    </div>
+                    <div class="select-box">
+                        <select id="filter-status">
+                            <option value="all">Tất cả trạng thái duyệt</option>
+                            <option value="Chờ duyệt">Chờ duyệt</option>
+                            <option value="Đã duyệt">Đã duyệt</option>
+                            <option value="Bác bỏ">Bác bỏ</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-success" id="export-excel-btn">
+                        <i class="fa-solid fa-file-export"></i> Xuất Excel Bàn Giao
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table Wrapper -->
+            <div class="table-wrapper">
+                <table class="leads-table" id="leads-table">
+                    <thead>
+                        <tr>
+                            <th>Mã KH</th>
+                            <th>Họ tên</th>
+                            <th>Số điện thoại</th>
+                            <th width="35%">Mô tả nhu cầu</th>
+                            <th>Điểm số (AI)</th>
+                            <th>Phân loại</th>
+                            <th>Lý do</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Table rows will be inserted here dynamically -->
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                                Đang tải dữ liệu mẫu hoặc nạp tệp Excel...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Custom JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "test_cases": [
+    {
+      "id": "TC001",
+      "description": "Happy path: Calculate salary correctly with valid base, bonus and penalty",
+      "input": {
+        "Base_Salary": 10000000,
+        "Bonus": 2000000,
+        "Penalty": 500000
+      },
+      "expected_output": {
+        "Net_Salary": 11500000
+      }
+    },
+    {
+      "id": "TC002",
+      "description": "Violation: Zero-Floor Rule (Penalty > Base + Bonus)",
+      "input": {
+        "Base_Salary": 5000000,
+        "Bonus": 1000000,
+        "Penalty": 8000000
+      },
+      "expected_output": {
+        "Net_Salary": 0
+      }
+    },
+    {
+      "id": "TC003",
+      "description": "Edge Case: Missing Bonus value defaults to 0",
+      "input": {
+        "Base_Salary": 10000000,
+        "Bonus": null,
+        "Penalty": 1000000
+      },
+      "expected_output": {
+        "Net_Salary": 9000000
+      }
+    }
+  ]
+}

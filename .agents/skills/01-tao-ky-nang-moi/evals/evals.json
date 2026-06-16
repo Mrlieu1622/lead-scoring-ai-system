@@ -1,0 +1,61 @@
+{
+  "skill": "skill-writer",
+  "version": "2.0",
+  "description": "Test cases for tri-modal skill engine: CREATE, AUDIT, OPTIMIZE",
+  "test_cases": [
+    {
+      "id": "TC-01",
+      "type": "happy_path",
+      "route": "CREATE",
+      "description": "Create a new skill from a process description",
+      "input": "User provides: 'Tạo skill để audit compliance theo AUN-QA. Cần check 8 criteria, output report markdown.'",
+      "expected_output": "4-Tier directory scaffold with SKILL.md (Canonical 10-section), references/aun-qa-criteria.md, assets/report-template.md, evals/evals.json with ≥2 test cases",
+      "pass_criteria": "SKILL.md < 500 lines, has ROLE/PURPOSE/PROCESS/RESOURCES/QA/RULES sections, evals.json valid JSON with ≥2 cases"
+    },
+    {
+      "id": "TC-02",
+      "type": "violation",
+      "route": "CREATE",
+      "description": "Reject skill creation without description or with placeholder content",
+      "input": "User says: 'Tạo skill tên compliance-checker' (no description, no process, no context)",
+      "expected_output": "CLARIFY: Ask user for (a) what the skill does, (b) trigger phrases, (c) expected output format before proceeding",
+      "pass_criteria": "Agent asks ≥2 clarifying questions from WHEN TO CLARIFY section instead of generating placeholder skill"
+    },
+    {
+      "id": "TC-03",
+      "type": "happy_path",
+      "route": "AUDIT",
+      "description": "Batch audit 3+ skills and produce scorecard",
+      "input": "User says: 'Audit tất cả skills trong .agents/skills/' (directory contains 5 skills of varying quality)",
+      "expected_output": "Batch Scorecard with 8-Dimension scores per skill, Library Health Score, Priority Queue (CRITICAL/REPAIR/ENRICH/MONITOR)",
+      "pass_criteria": "All 5 skills scored across 8 dimensions, grades assigned A-F, priority queue generated, no dimension skipped"
+    },
+    {
+      "id": "TC-04",
+      "type": "violation",
+      "route": "AUDIT",
+      "description": "Handle non-existent skill path gracefully",
+      "input": "User says: 'Audit skill tại .agents/skills/nonexistent-skill/'",
+      "expected_output": "Error: Skill directory not found at specified path. Ask user to verify path or paste SKILL.md content inline.",
+      "pass_criteria": "No crash, no hallucinated audit report, clear error message with actionable next steps"
+    },
+    {
+      "id": "TC-05",
+      "type": "happy_path",
+      "route": "OPTIMIZE",
+      "description": "Repair a Grade D skill to Grade B",
+      "input": "Skill with: empty description, no RESOURCES table, body is flat bullet list, no evals. Score: 42/100 (D)",
+      "expected_output": "Repaired SKILL.md with Pushy description (R1), restructured body (R2), RESOURCES table pointing to generated references, evals.json seeded (E5). Delta report showing improvement.",
+      "pass_criteria": "Post-repair score ≥ 70/100 (Grade B), delta report shows before/after, all created files are substantive (>500 bytes)"
+    },
+    {
+      "id": "TC-06",
+      "type": "violation",
+      "route": "OPTIMIZE",
+      "description": "Refuse to auto-fix ambiguous content without user confirmation",
+      "input": "Skill with mixed routing+knowledge content where extraction boundaries are unclear (passive_ratio 0.4)",
+      "expected_output": "HALT: Present ambiguous areas to user with line numbers and quotes. Offer [A] Approve / [B] Manual / [C] Defer options.",
+      "pass_criteria": "Agent does NOT auto-extract ambiguous content, presents clear rationale for why manual review is needed"
+    }
+  ]
+}

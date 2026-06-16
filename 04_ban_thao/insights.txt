@@ -1,0 +1,17 @@
+### Nhận định 1: Tỷ lệ trả hàng cao bất thường ảnh hưởng nghiêm trọng đến biên lợi nhuận
+- **Observation (Quan sát):** Tỷ lệ đơn hàng bị trả lại (Return Rate) đang ở mức rất cao trong hệ thống bán hàng.
+- **Evidence (Bằng chứng):** Giá trị trung bình của cột `RETURN_FLAG` là 0.256, tương đương với 25.6% tổng số đơn hàng bán ra bị khách hàng trả lại (128/500 đơn hàng).
+- **Interpretation (Diễn giải):** Đây là tỷ lệ trả hàng cực kỳ cao đối với một doanh nghiệp bán lẻ. Nguyên nhân có thể do chất lượng sản phẩm không đồng đều, mô tả sản phẩm trên các kênh trực tuyến không khớp với thực tế, hoặc quy trình giao hàng gặp sự cố làm hỏng hóc sản phẩm.
+- **Action (Hành động):** Cần thiết lập ngay một nhóm đặc nhiệm phối hợp giữa bộ phận Quản lý chất lượng (QA) và bộ phận Chăm sóc khách hàng để khảo sát lý do trả hàng của 128 đơn hàng này, đồng thời thắt chặt khâu kiểm tra đóng gói trước khi bàn giao cho đơn vị vận chuyển.
+
+### Nhận định 2: Thời gian giao hàng kéo dài làm giảm trải nghiệm khách hàng
+- **Observation (Quan sát):** Thời gian giao hàng trung bình còn chậm và chưa được tối ưu hóa.
+- **Evidence (Bằng chứng):** Chỉ số `DELIVERY_TIME_DAYS` trung bình là 4.09 ngày, với giá trị lớn nhất lên tới 7 ngày.
+- **Interpretation (Diễn giải):** Trong kỷ nguyên thương mại điện tử giao hàng nhanh, thời gian giao hàng lên tới 4-7 ngày là một điểm trừ lớn. Điều này có thể dẫn đến việc khách hàng hủy đơn hoặc không tiếp tục mua hàng trong tương lai, gián tiếp làm tăng tỷ lệ trả hàng ở Nhận định 1.
+- **Action (Hành động):** Đàm phán lại SLA với đối tác vận chuyển hiện tại hoặc tìm kiếm các đơn vị chuyển phát nhanh 24h/48h cho các khu vực đô thị trọng điểm để kéo giảm thời gian giao hàng trung bình xuống dưới 3 ngày.
+
+### Nhận định 3: Xuất hiện các giao dịch thua lỗ do quản lý chi phí chưa hiệu quả
+- **Observation (Quan sát):** Một số giao dịch phát sinh lợi nhuận âm (thua lỗ).
+- **Evidence (Bằng chứng):** Lợi nhuận (`PROFIT`) tối thiểu ghi nhận mức -261.0, trong khi lợi nhuận trung bình là 1,437.79.
+- **Interpretation (Diễn giải):** Hiện tượng lỗ trên từng đơn hàng đơn lẻ thường do áp dụng chương trình khuyến mãi (Discount) quá đà kết hợp với chi phí marketing (`MARKETING_COST`) và chi phí giá vốn (`COGS`) vượt quá doanh thu thực nhận.
+- **Action (Hành động):** Rà soát lại chính sách chiết khấu tự động trên hệ thống, đặt mức trần chiết khấu (Discount Cap) tối đa cho mỗi đơn hàng để đảm bảo biên lợi nhuận gộp tối thiểu không bao giờ bị âm.
