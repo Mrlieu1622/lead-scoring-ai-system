@@ -12,7 +12,6 @@ def clean_text(text):
     return text.strip().lower()
 
 def extract_budget(text):
-    # Match pattern like "20 tỷ", "35 tỷ", "20ty", etc.
     matches = re.findall(r'(\d+)\s*(?:tỷ|ty|tỉ)', text)
     if matches:
         return [int(m) for m in matches]
@@ -54,7 +53,7 @@ def run_lead_scoring(df):
         classification = "Tiềm năng"
         reasons = []
         
-        # Check VIP criteria
+        # Check VIP criteria (🏡 BĐS)
         vip_keywords = {
             "loai_hinh_cao_cap": ["biệt thự đơn lập", "penthouse", "shophouse mặt đường lớn", "quỹ đất công nghiệp", "sàn văn phòng diện tích lớn"],
             "vi_tri_dac_dia": ["quận 1", "ven sông", "vinhomes ocean park", "phú mỹ hưng"],
@@ -260,9 +259,17 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Premium Header (Techcombank Brand Identity)
-st.markdown("<div class='main-title'>🏦 TECHCOMBANK <span>PRIORITY</span></div>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>Hệ thống Định hạng Khách hàng cao cấp và phân tích Tiềm năng AI Lead Scoring</div>", unsafe_allow_html=True)
+# Sidebar Logo Integration & Brand Banner
+logo_path = "01_dau_vao/B7/techcombank_priority_logo.png"
+if not os.path.exists(logo_path):
+    logo_path = "techcombank_priority_logo.png"
+
+if os.path.exists(logo_path):
+    st.sidebar.image(logo_path, use_container_width=True)
+
+# Premium Header (Techcombank Brand Identity with Emojis)
+st.markdown("<div class='main-title'>🏦 TECHCOMBANK <span>PRIORITY</span> 🏡</div>", unsafe_allow_html=True)
+st.markdown("<div class='subtitle'>Hệ thống Định hạng Khách hàng cao cấp và phân tích Tiềm năng AI Lead Scoring (Lĩnh vực Bất động sản 🏡)</div>", unsafe_allow_html=True)
 
 # Sidebar Config
 st.sidebar.markdown("### ⚙️ HỆ THỐNG GIAO DỊCH")
@@ -307,23 +314,21 @@ else:
 if 'df_scored' in st.session_state:
     df_scored = st.session_state.df_scored
     
-    # Beautiful Custom Cards for Stats (Techcombank Luxury Theme)
+    # Techcombank 3-Column Dashboard Metrics as requested
     total_leads = len(df_scored)
     vip_count = len(df_scored[df_scored["Phân loại"] == "VIP/Siêu tiềm năng"])
-    pot_count = len(df_scored[df_scored["Phân loại"] == "Tiềm năng"])
     junk_count = len(df_scored[df_scored["Phân loại"] == "Không tiềm năng"])
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown(f"<div class='metric-card' style='border-top: 4px solid #94a3b8;'><div class='metric-label'>👥 Tổng hồ sơ nạp</div><div class='metric-val'>{total_leads}</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card' style='border-top: 4px solid #94a3b8;'><div class='metric-label'>👥 Tổng khách hàng</div><div class='metric-val'>{total_leads}</div></div>", unsafe_allow_html=True)
     with col2:
-        st.markdown(f"<div class='metric-card' style='border-top: 4px solid #fbbf24;'><div class='metric-label' style='color:#fbbf24;'>👑 Hạng VIP/Priority</div><div class='metric-val'>{vip_count}</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card' style='border-top: 4px solid #fbbf24;'><div class='metric-label' style='color:#fbbf24;'>👑 Khách VIP (+50đ)</div><div class='metric-val'>{vip_count}</div></div>", unsafe_allow_html=True)
     with col3:
-        st.markdown(f"<div class='metric-card' style='border-top: 4px solid #60a5fa;'><div class='metric-label' style='color:#60a5fa;'>✅ Khách Tiềm Năng</div><div class='metric-val'>{pot_count}</div></div>", unsafe_allow_html=True)
-    with col4:
-        st.markdown(f"<div class='metric-card' style='border-top: 4px solid #f87171;'><div class='metric-label' style='color:#f87171;'>🗑️ Hồ Sơ Loại Trừ</div><div class='metric-val'>{junk_count}</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card' style='border-top: 4px solid #f87171;'><div class='metric-label' style='color:#f87171;'>🗑️ Khách Rác (-50đ)</div><div class='metric-val'>{junk_count}</div></div>", unsafe_allow_html=True)
         
     st.markdown("<br>", unsafe_allow_html=True)
+    st.divider() # Emoji & Divider integration
     
     # Premium Filter Layout inside an expander (Corporate Style)
     with st.expander("🔍 CÔNG CỤ TRUY VẤN VÀ LỌC THÔNG TIN", expanded=True):
@@ -408,3 +413,63 @@ if 'df_scored' in st.session_state:
         st.info("💡 Bạn có thể trực tiếp nhấp vào ô bất kỳ trong bảng dữ liệu để chỉnh sửa điểm, sửa phân loại và duyệt hồ sơ trước khi xuất file.")
 else:
     st.info("👋 Chào mừng bạn đến với hệ thống giao dịch Techcombank Priority. Vui lòng nạp thông tin khách hàng ở thanh cấu hình bên trái để bắt đầu.")
+
+st.markdown("<br><br>", unsafe_allow_html=True)
+st.divider()
+
+# Audit Table rendering matching user's image request
+st.markdown("""
+<div style="background-color: #E31837; padding: 25px; border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+    <h3 style="margin-top: 0; color: white; display: flex; align-items: center; gap: 10px; font-weight: 700;">📋 Bảng Tổng kết Kiểm tra (Audit)</h3>
+    <p style="font-size: 0.95rem; opacity: 0.9; margin-bottom: 20px;">Học viên phải điền được bảng này mới được coi là hoàn thành bài tập.</p>
+    <table style="width: 100%; border-collapse: collapse; color: white; font-size: 1rem;">
+        <thead>
+            <tr style="border-bottom: 2px solid rgba(255,255,255,0.3); text-align: left;">
+                <th style="padding: 10px; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">Thành tố</th>
+                <th style="padding: 10px; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">Tên File/Công cụ</th>
+                <th style="padding: 10px; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">Mô tả</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15);">
+                <td style="padding: 12px 10px; font-weight: 700;">1. Input</td>
+                <td style="padding: 12px 10px;">Google Sheets</td>
+                <td style="padding: 12px 10px;">500 khách hàng BĐS</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15);">
+                <td style="padding: 12px 10px; font-weight: 700;">2. Agent</td>
+                <td style="padding: 12px 10px;">Logic chấm điểm</td>
+                <td style="padding: 12px 10px;">Tự động quét mô tả</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15);">
+                <td style="padding: 12px 10px; font-weight: 700;">3. Tools</td>
+                <td style="padding: 12px 10px;">Streamlit, Pandas, GitHub</td>
+                <td style="padding: 12px 10px;">Nền tảng xây dựng</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15);">
+                <td style="padding: 12px 10px; font-weight: 700;">4. Knowledge</td>
+                <td style="padding: 12px 10px;">tieu_chi_cham_diem.txt</td>
+                <td style="padding: 12px 10px;">Quy tắc +50đ / -50đ</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15);">
+                <td style="padding: 12px 10px; font-weight: 700;">5. Memory</td>
+                <td style="padding: 12px 10px;">st.session_state</td>
+                <td style="padding: 12px 10px;">Ghi nhớ trạng thái</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15);">
+                <td style="padding: 12px 10px; font-weight: 700;">6. Workflow</td>
+                <td style="padding: 12px 10px;">AI → Người duyệt → Excel</td>
+                <td style="padding: 12px 10px;">Human Checkpoint</td>
+            </tr>
+            <tr style="border-bottom: none;">
+                <td style="padding: 12px 10px; font-weight: 700;">7. Output</td>
+                <td style="padding: 12px 10px;">File Excel Bàn Giao</td>
+                <td style="padding: 12px 10px;">Dữ liệu sạch cho Sales</td>
+            </tr>
+        </tbody>
+    </table>
+    <div style="background-color: #FEF3C7; color: #92400E; padding: 14px; border-radius: 8px; margin-top: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; border: 1px solid #FDE68A; font-size: 0.95rem;">
+        ✅ Hoàn thành đủ 7 thành tố = Vượt qua Buổi 7!
+    </div>
+</div>
+""", unsafe_allow_html=True)
