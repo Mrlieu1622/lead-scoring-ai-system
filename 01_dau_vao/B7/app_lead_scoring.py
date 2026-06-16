@@ -319,9 +319,16 @@ if 'df_scored' in st.session_state:
         with filter_col3:
             status_filter = st.selectbox("Trạng thái duyệt:", ["Tất cả", "Chờ duyệt", "Đã duyệt", "Bác bỏ"])
             
+        # Thêm mục lọc nhanh khách tiềm năng trở lên
+        only_valuable = st.checkbox("🔥 Chỉ lọc hiển thị Khách hàng tiềm năng trở lên (Loại bỏ Khách hàng Rác)", value=False)
+    
     # Apply filtering criteria
     filtered_df = df_scored.copy()
     
+    # Filter only valuable
+    if only_valuable:
+        filtered_df = filtered_df[filtered_df["Phân loại"].isin(["VIP/Siêu tiềm năng", "Tiềm năng"])]
+        
     if search_query:
         filtered_df = filtered_df[
             filtered_df["Họ tên"].astype(str).str.lower().str.contains(search_query) |
@@ -335,6 +342,26 @@ if 'df_scored' in st.session_state:
     if status_filter != "Tất cả":
         filtered_df = filtered_df[filtered_df["Trạng thái duyệt"] == status_filter]
         
+    # Actions right below the filter block
+    st.markdown("##### ⚡ Thao tác nhanh trên kết quả hiển thị:")
+    act_col1, act_col2, act_col3 = st.columns([1, 1, 4])
+    with act_col1:
+        if st.button("✅ Duyệt Nhanh"):
+            for idx, row in filtered_df.iterrows():
+                match_idx = st.session_state.df_scored[st.session_state.df_scored["Mã KH"] == row["Mã KH"]].index
+                if len(match_idx) > 0:
+                    st.session_state.df_scored.at[match_idx[0], "Trạng thái duyệt"] = "Đã duyệt"
+            st.success("Đã phê duyệt toàn bộ dòng đang hiển thị!")
+            st.rerun()
+    with act_col2:
+        if st.button("❌ Bác Bỏ"):
+            for idx, row in filtered_df.iterrows():
+                match_idx = st.session_state.df_scored[st.session_state.df_scored["Mã KH"] == row["Mã KH"]].index
+                if len(match_idx) > 0:
+                    st.session_state.df_scored.at[match_idx[0], "Trạng thái duyệt"] = "Bác bỏ"
+            st.warning("Đã bác bỏ toàn bộ dòng đang hiển thị!")
+            st.rerun()
+            
     st.subheader(f"🎯 Danh sách kết quả ({len(filtered_df)} dòng hiển thị)")
     
     # Render interactive editor
