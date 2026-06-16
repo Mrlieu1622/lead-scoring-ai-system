@@ -12,6 +12,7 @@ def clean_text(text):
     return text.strip().lower()
 
 def extract_budget(text):
+    # Match pattern like "20 tỷ", "35 tỷ", "20ty", etc.
     matches = re.findall(r'(\d+)\s*(?:tỷ|ty|tỉ)', text)
     if matches:
         return [int(m) for m in matches]
@@ -20,12 +21,32 @@ def extract_budget(text):
 def run_lead_scoring(df):
     scored_leads = []
     
+    # Standardize columns to lower case for easy matching
+    col_mapping = {str(col).strip().lower(): col for col in df.columns}
+    
+    # Resolve columns
+    id_col = next((col_mapping[c] for c in ["mã kh", "mã khách hàng", "id"] if c in col_mapping), None)
+    name_col = next((col_mapping[c] for c in ["họ tên", "tên khách hàng", "họ và tên", "name"] if c in col_mapping), None)
+    phone_col = next((col_mapping[c] for c in ["số điện thoại", "sđt", "phone", "sdt"] if c in col_mapping), None)
+    demand_col = next((col_mapping[c] for c in ["nhu cầu", "mô tả", "demand", "nhu cầu khách hàng"] if c in col_mapping), None)
+
     for idx, row in df.iterrows():
-        lead_id = row.get("Mã KH", row.get("Mã khách hàng", f"KH{idx+1:03d}"))
-        name = row.get("Họ tên", row.get("Tên khách hàng", "Chưa rõ"))
-        phone = row.get("Số điện thoại", row.get("SĐT", ""))
-        demand = row.get("Nhu cầu", row.get("Mô tả", ""))
+        lead_id = row.get(id_col, f"KH{idx+1:03d}") if id_col else f"KH{idx+1:03d}"
+        name = row.get(name_col, "Chưa rõ") if name_col else "Chưa rõ"
+        phone = row.get(phone_col, "") if phone_col else ""
         
+        # Handle NaN phone values cleanly
+        if pd.isna(phone):
+            phone = "N/A"
+        elif isinstance(phone, float):
+            phone = str(int(phone))
+        else:
+            phone = str(phone)
+            
+        demand = row.get(demand_col, "") if demand_col else ""
+        if pd.isna(demand):
+            demand = ""
+            
         demand_lower = clean_text(demand)
         
         # Scoring evaluation
@@ -104,7 +125,7 @@ def run_lead_scoring(df):
         scored_leads.append({
             "Mã KH": lead_id,
             "Họ tên": name,
-            "Số điện thoại": str(phone),
+            "Số điện thoại": phone,
             "Nhu cầu": demand,
             "Điểm số": score,
             "Phân loại": classification,
@@ -137,80 +158,170 @@ def download_google_sheet(url):
         else:
             raise RuntimeError(f"Không thể tải Google Sheet (Mã lỗi: {response.status_code}). Vui lòng đảm bảo quyền truy cập công khai.")
 
-# Streamlit App UI
+# Streamlit App Config & Premium UI Customization
 st.set_page_config(page_title="AI Lead Scoring System", page_icon="🤖", layout="wide")
 
-st.title("🤖 AI Lead Scoring & Automation System")
-st.markdown("Hệ thống tự động chấm điểm khách hàng tiềm năng ngành Bất động sản dựa trên mô tả nhu cầu.")
+# CSS Injection for Premium Dark Theme
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+    
+    /* General styles */
+    .reportview-container {
+        font-family: 'Outfit', sans-serif;
+    }
+    
+    /* Title and Subtitle */
+    .main-title {
+        font-size: 2.8rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #a78bfa, #38bdf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.2rem;
+    }
+    
+    .subtitle {
+        font-size: 1.1rem;
+        color: #94a3b8;
+        margin-bottom: 2rem;
+    }
+    
+    /* Glassmorphism Cards */
+    .metric-card {
+        background: rgba(30, 41, 59, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 1.5rem;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        margin-bottom: 1rem;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+    
+    .metric-label {
+        font-size: 0.9rem;
+        color: #94a3b8;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .metric-val {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-top: 0.5rem;
+    }
+    
+    /* Buttons Customization */
+    .stButton>button {
+        background: linear-gradient(135deg, #8b5cf6, #3b82f6) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 0.6rem 1.8rem !important;
+        font-weight: 600 !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 4px 14px rgba(139, 92, 246, 0.2) !important;
+    }
+    
+    .stButton>button:hover {
+        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4) !important;
+        transform: translateY(-2px) !important;
+    }
+    
+    /* Sidebar customization */
+    [data-testid="stSidebar"] {
+        background-color: #0f172a !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+</style>
+""", unsafe_allow_html=True)
 
-# Sidebar configuration
-st.sidebar.header("Cấu hình nguồn dữ liệu")
-data_source = st.sidebar.radio("Chọn hình thức nạp dữ liệu:", ("Nhập link Google Sheets", "Tải lên tệp Excel (.xlsx)"))
+# Premium Header
+st.markdown("<div class='main-title'>🤖 AI LEAD SCORING SYSTEM</div>", unsafe_allow_html=True)
+st.markdown("<div class='subtitle'>Hệ thống chấm điểm khách hàng tiềm năng cao cấp ứng dụng quy tắc thông minh & Human-in-the-loop</div>", unsafe_allow_html=True)
 
-# Reset state helper if data source or file changes
+# Sidebar Config
+st.sidebar.markdown("### ⚙️ NGUỒN DỮ LIỆU ĐẦU VÀO")
+data_source = st.sidebar.radio("Hình thức nạp dữ liệu:", ("Nhập link Google Sheets", "Tải lên tệp Excel (.xlsx)"))
+
 def reset_data_state():
     if 'df_scored' in st.session_state:
         del st.session_state['df_scored']
 
 df = None
 
+# Logic to load data
 if data_source == "Nhập link Google Sheets":
     sheet_url = st.sidebar.text_input("Link Google Sheets:", "https://docs.google.com/spreadsheets/d/1hRvHE6RXm1peVG07avfApPEHocOcPld9IA94hE3vUGE/edit?gid=0#gid=0", on_change=reset_data_state)
-    if st.sidebar.button("Nạp dữ liệu từ Sheets"):
+    if st.sidebar.button("⚡ Tải & Chấm Điểm"):
         try:
-            with st.spinner("Đang tải dữ liệu từ Google Sheets..."):
+            with st.spinner("Đang kết nối và chấm điểm dữ liệu từ Google Sheets..."):
                 content = download_google_sheet(sheet_url)
                 df = pd.read_excel(io.BytesIO(content))
-                st.session_state.df_scored = run_lead_scoring(df)
-                st.success("Tải dữ liệu và chạy chấm điểm tự động từ Google Sheets thành công!")
+                if len(df) > 0:
+                    st.session_state.df_scored = run_lead_scoring(df)
+                    st.success("Tải dữ liệu và phân loại tự động thành công!")
+                else:
+                    st.error("Bảng tính Google Sheets không chứa bất kỳ dòng dữ liệu nào.")
         except Exception as e:
-            st.error(f"Lỗi: {str(e)}. Hãy chắc chắn rằng Google Sheet đã được cài đặt chế độ chia sẻ công khai.")
+            st.error(f"Lỗi truy xuất: {str(e)}. Vui lòng đảm bảo Google Sheet được đặt ở chế độ chia sẻ công khai ('Bất kỳ ai có liên kết đều xem được').")
 else:
-    uploaded_file = st.sidebar.file_uploader("Chọn tệp Excel:", type=["xlsx", "xls"], on_change=reset_data_state)
+    uploaded_file = st.sidebar.file_uploader("Chọn tệp Excel đầu vào:", type=["xlsx", "xls"], on_change=reset_data_state)
     if uploaded_file is not None:
         try:
             df = pd.read_excel(uploaded_file)
-            if 'df_scored' not in st.session_state:
-                st.session_state.df_scored = run_lead_scoring(df)
-                st.success("Tải tệp Excel lên và chạy chấm điểm tự động thành công!")
+            if len(df) > 0:
+                if 'df_scored' not in st.session_state:
+                    st.session_state.df_scored = run_lead_scoring(df)
+                    st.success("Nạp file Excel và tự động chấm điểm thành công!")
+            else:
+                st.error("Tệp Excel tải lên không chứa dữ liệu.")
         except Exception as e:
-            st.error(f"Lỗi đọc file: {str(e)}")
+            st.error(f"Lỗi khi xử lý file Excel: {str(e)}")
 
 # Process data if loaded in session state
 if 'df_scored' in st.session_state:
     df_scored = st.session_state.df_scored
     
-    # Show Metrics
+    # Beautiful Custom Cards for Stats
     total_leads = len(df_scored)
     vip_count = len(df_scored[df_scored["Phân loại"] == "VIP/Siêu tiềm năng"])
     pot_count = len(df_scored[df_scored["Phân loại"] == "Tiềm năng"])
     junk_count = len(df_scored[df_scored["Phân loại"] == "Không tiềm năng"])
     
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Tổng số Lead", total_leads)
-    col2.metric("VIP/Siêu Tiềm Năng", vip_count)
-    col3.metric("Tiềm Năng", pot_count)
-    col4.metric("Không Tiềm Năng", junk_count)
-    
-    st.markdown("---")
-    
-    # Filtering Section
-    st.subheader("🔍 Bộ lọc và tìm kiếm dữ liệu")
-    filter_col1, filter_col2, filter_col3 = st.columns([2, 1, 1])
-    
-    with filter_col1:
-        search_query = st.text_input("Tìm kiếm theo Họ tên, SĐT hoặc Nhu cầu:", "").lower().strip()
+    with col1:
+        st.markdown(f"<div class='metric-card'><div class='metric-label'>👥 Tổng số Lead</div><div class='metric-val'>{total_leads}</div></div>", unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"<div class='metric-card' style='border-left: 4px solid #f59e0b;'><div class='metric-label' style='color:#f59e0b;'>👑 VIP / SIÊU TIỀM NĂNG</div><div class='metric-val'>{vip_count}</div></div>", unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"<div class='metric-card' style='border-left: 4px solid #3b82f6;'><div class='metric-label' style='color:#3b82f6;'>✅ TIỀM NĂNG</div><div class='metric-val'>{pot_count}</div></div>", unsafe_allow_html=True)
+    with col4:
+        st.markdown(f"<div class='metric-card' style='border-left: 4px solid #ef4444;'><div class='metric-label' style='color:#ef4444;'>🗑️ KHÔNG TIỀM NĂNG</div><div class='metric-val'>{junk_count}</div></div>", unsafe_allow_html=True)
         
-    with filter_col2:
-        class_filter = st.selectbox("Lọc theo phân loại:", ["Tất cả", "VIP/Siêu tiềm năng", "Tiềm năng", "Không tiềm năng"])
-        
-    with filter_col3:
-        status_filter = st.selectbox("Lọc theo trạng thái duyệt:", ["Tất cả", "Chờ duyệt", "Đã duyệt", "Bác bỏ"])
+    st.markdown("<br>", unsafe_allow_html=True)
     
-    # Filter the dataframe
+    # Premium Filter Layout inside an expander
+    with st.expander("🔍 BỘ LỌC TÌM KIẾM NÂNG CAO", expanded=True):
+        filter_col1, filter_col2, filter_col3 = st.columns([2, 1, 1])
+        with filter_col1:
+            search_query = st.text_input("Tìm kiếm nhanh (Họ tên, SĐT, Nhu cầu):", "").lower().strip()
+        with filter_col2:
+            class_filter = st.selectbox("Phân loại:", ["Tất cả", "VIP/Siêu tiềm năng", "Tiềm năng", "Không tiềm năng"])
+        with filter_col3:
+            status_filter = st.selectbox("Trạng thái duyệt:", ["Tất cả", "Chờ duyệt", "Đã duyệt", "Bác bỏ"])
+            
+    # Apply filtering criteria
     filtered_df = df_scored.copy()
     
-    # Apply text search
     if search_query:
         filtered_df = filtered_df[
             filtered_df["Họ tên"].astype(str).str.lower().str.contains(search_query) |
@@ -218,40 +329,40 @@ if 'df_scored' in st.session_state:
             filtered_df["Nhu cầu"].astype(str).str.lower().str.contains(search_query)
         ]
         
-    # Apply classification filter
     if class_filter != "Tất cả":
         filtered_df = filtered_df[filtered_df["Phân loại"] == class_filter]
         
-    # Apply status filter
     if status_filter != "Tất cả":
         filtered_df = filtered_df[filtered_df["Trạng thái duyệt"] == status_filter]
         
-    st.subheader(f"🎯 Kết quả chấm điểm ({len(filtered_df)} dòng hiển thị)")
+    st.subheader(f"🎯 Danh sách kết quả ({len(filtered_df)} dòng hiển thị)")
     
-    # Interactive data editor
+    # Render interactive editor
     edited_filtered_df = st.data_editor(filtered_df, use_container_width=True)
     
-    # Sync edited changes back to session state to prevent loss
+    # Safe cell update syncing to original session state
     for idx, row in edited_filtered_df.iterrows():
-        # Update matching row in original session state
-        st.session_state.df_scored.loc[st.session_state.df_scored["Mã KH"] == row["Mã KH"]] = row
-        
-    # Export all results to Excel in memory for download
+        match_idx = st.session_state.df_scored[st.session_state.df_scored["Mã KH"] == row["Mã KH"]].index
+        if len(match_idx) > 0:
+            for col in st.session_state.df_scored.columns:
+                st.session_state.df_scored.at[match_idx[0], col] = row[col]
+                
+    # Export to Excel
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         st.session_state.df_scored.to_excel(writer, index=False, sheet_name='Scored Leads')
     processed_data = output.getvalue()
     
-    # Export and download button group
-    dl_col1, dl_col2 = st.columns([1, 4])
-    with dl_col1:
+    # Footer Action Buttons
+    dl_col, tip_col = st.columns([1, 4])
+    with dl_col:
         st.download_button(
-            label="📥 Tải xuống kết quả bàn giao",
+            label="📥 Xuất Báo Cáo Excel Bàn Giao",
             data=processed_data,
             file_name="lead_scored_report.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-    with dl_col2:
-        st.info("Bấm vào các ô trong bảng để trực tiếp chỉnh sửa điểm số, phân loại hoặc trạng thái duyệt (Human-in-the-loop).")
+    with tip_col:
+        st.info("💡 Mẹo: Bạn có thể nhấp trực tiếp vào ô bất kỳ trong bảng trên để thay đổi Điểm số, Phân loại hoặc Trạng thái duyệt theo ý muốn.")
 else:
-    st.info("Vui lòng cấu hình nguồn dữ liệu ở thanh bên (Sidebar) và nhấn nút Nạp dữ liệu để bắt đầu.")
+    st.info("👋 Chào mừng bạn! Vui lòng chọn nguồn dữ liệu (ở thanh bên trái) và click '⚡ Tải & Chấm Điểm' để bắt đầu.")
