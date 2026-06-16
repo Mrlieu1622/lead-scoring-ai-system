@@ -158,10 +158,30 @@ def download_google_sheet(url):
         else:
             raise RuntimeError(f"Không thể tải Google Sheet (Mã lỗi: {response.status_code}). Vui lòng đảm bảo quyền truy cập công khai.")
 
+# PII Masking Helpers
+def mask_phone(phone_str):
+    if not phone_str or phone_str == "N/A":
+        return "N/A"
+    phone_clean = str(phone_str).strip()
+    if len(phone_clean) >= 7:
+        return phone_clean[:3] + "***" + phone_clean[-3:]
+    return "***" * len(phone_clean)
+
+def mask_name(name_str):
+    if not name_str or name_str == "Chưa rõ":
+        return "Chưa rõ"
+    name_clean = str(name_str).strip()
+    parts = name_clean.split()
+    if len(parts) >= 2:
+        return parts[0] + " " + "***" + " " + parts[-1]
+    if len(name_clean) > 2:
+        return name_clean[0] + "***" + name_clean[-1]
+    return "***"
+
 # Streamlit App Config & Premium UI Customization
 st.set_page_config(page_title="AI Lead Scoring - TM Priority", page_icon="👑", layout="wide")
 
-# CSS Injection for Clean, Ultra-Premium Matte Obsidian & Bronze Aura Background (Simple but luxury)
+# CSS Injection for Clean, Ultra-Premium Matte Obsidian & Bronze Aura Background
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
@@ -200,7 +220,7 @@ st.markdown("""
     .metric-card {
         background: rgba(15, 23, 42, 0.7);
         border: 1px solid rgba(255, 255, 255, 0.05);
-        border-top: 4px solid #d97706; /* Elegant Top Gold Border */
+        border-top: 4px solid #d97706; /* Elegant Gold Top Border */
         border-radius: 14px;
         padding: 1.4rem;
         backdrop-filter: blur(12px);
@@ -229,7 +249,7 @@ st.markdown("""
         margin-top: 0.4rem;
     }
     
-    /* Rounded Buttons (Bo tròn nút) */
+    /* Rounded Buttons */
     .stButton>button, .stDownloadButton>button {
         background: linear-gradient(135deg, #d97706, #92400e) !important;
         color: white !important;
@@ -284,6 +304,11 @@ st.markdown("<div class='subtitle'>Hệ thống Định hạng Khách hàng cao 
 # Sidebar Config
 st.sidebar.markdown("### ⚙️ HỆ THỐNG GIAO DỊCH")
 data_source = st.sidebar.radio("Hình thức nạp hồ sơ khách hàng:", ("Nhập link Google Sheets", "Tải lên tệp Excel (.xlsx)"))
+
+# PII Privacy Toggle in Sidebar
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🔒 BẢO MẬT PII")
+hide_pii = st.sidebar.checkbox("Ẩn thông tin nhạy cảm (SĐT & Tên)", value=False)
 
 def reset_data_state():
     if 'df_scored' in st.session_state:
@@ -394,17 +419,33 @@ if 'df_scored' in st.session_state:
             
     st.subheader(f"📊 Bảng dữ liệu định hạng phân loại ({len(filtered_df)} khách hàng)")
     
+    # Apply Masking on Display DataFrame if toggled
+    display_df = filtered_df.copy()
+    column_config = {}
+    
+    if hide_pii:
+        display_df["Số điện thoại"] = display_df["Số điện thoại"].apply(mask_phone)
+        display_df["Họ tên"] = display_df["Họ tên"].apply(mask_name)
+        # Disable editing of masked columns to prevent data override
+        column_config = {
+            "Họ tên": st.column_config.TextColumn(disabled=True),
+            "Số điện thoại": st.column_config.TextColumn(disabled=True)
+        }
+    
     # Render interactive editor
-    edited_filtered_df = st.data_editor(filtered_df, use_container_width=True)
+    edited_filtered_df = st.data_editor(display_df, column_config=column_config, use_container_width=True)
     
     # Safe cell update syncing to original session state
     for idx, row in edited_filtered_df.iterrows():
         match_idx = st.session_state.df_scored[st.session_state.df_scored["Mã KH"] == row["Mã KH"]].index
         if len(match_idx) > 0:
             for col in st.session_state.df_scored.columns:
+                # If PII masking is enabled, skip syncing masked column cells to avoid overwriting real data
+                if hide_pii and col in ["Họ tên", "Số điện thoại"]:
+                    continue
                 st.session_state.df_scored.at[match_idx[0], col] = row[col]
                 
-    # Export to Excel
+    # Export to Excel (Export always exports unmasked full data)
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         st.session_state.df_scored.to_excel(writer, index=False, sheet_name='Scored Leads')
@@ -420,7 +461,10 @@ if 'df_scored' in st.session_state:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
     with tip_col:
-        st.info("💡 Bạn có thể trực tiếp nhấp vào ô bất kỳ trong bảng dữ liệu để chỉnh sửa điểm, sửa phân loại và duyệt hồ sơ trước khi xuất file.")
+        if hide_pii:
+            st.info("🔒 Ứng dụng đang ẩn thông tin bảo mật của khách hàng. Hãy yên tâm, dữ liệu đầy đủ chưa mã hóa vẫn được lưu trữ gốc khi xuất File Excel Bàn Giao.")
+        else:
+            st.info("💡 Bạn có thể trực tiếp nhấp vào ô bất kỳ trong bảng dữ liệu để chỉnh sửa điểm, sửa phân loại và duyệt hồ sơ trước khi xuất file.")
 else:
     st.info("👋 Chào mừng bạn đến với hệ thống giao dịch TM Priority. Vui lòng nạp thông tin khách hàng ở thanh cấu hình bên trái để bắt đầu.")
 
