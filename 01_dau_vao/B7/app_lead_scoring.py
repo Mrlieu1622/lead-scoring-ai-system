@@ -1,17 +1,17 @@
 import os
-import sys
 import re
-import argparse
 import pandas as pd
 import requests
+import streamlit as st
+import io
 
+# Core Lead Scoring Logic
 def clean_text(text):
     if not isinstance(text, str):
         return ""
     return text.strip().lower()
 
 def extract_budget(text):
-    # Match pattern like "20 tỷ", "35 tỷ", "20ty", etc.
     matches = re.findall(r'(\d+)\s*(?:tỷ|ty|tỉ)', text)
     if matches:
         return [int(m) for m in matches]
@@ -46,10 +46,8 @@ def run_lead_scoring(df):
         
         # Check budgets >= 20 billion
         budgets = extract_budget(demand_lower)
-        large_budget = False
         for b in budgets:
             if b >= 20:
-                large_budget = True
                 matched_vip.append(f"Ngân sách lớn: {b} tỷ")
                 
         for key, words in vip_keywords.items():
@@ -67,7 +65,7 @@ def run_lead_scoring(df):
         
         matched_junk = []
         
-        # Check unrealistic price in central areas (Q1, Trung tâm and low price like 1-2 tỷ or vài trăm triệu)
+        # Check unrealistic price in central areas
         has_central = any(x in demand_lower for x in ["quận 1", "q1", "trung tâm"])
         has_low_price = any(x in demand_lower for x in ["1 tỷ", "2 tỷ", "1-2 tỷ", "vài trăm triệu", "vài trăm tr"])
         if has_central and has_low_price:
@@ -90,7 +88,6 @@ def run_lead_scoring(df):
         else:
             score = 100
             classification = "Tiềm năng"
-            # Default potential checks
             potential_reasons = []
             if any(x in demand_lower for x in ["chung cư", "căn hộ", "nhà phố"]):
                 potential_reasons.append("Chung cư/nhà phố tầm trung")
@@ -118,18 +115,14 @@ def run_lead_scoring(df):
     return pd.DataFrame(scored_leads)
 
 def download_google_sheet(url):
-    # Match standard spreadsheet ID pattern
     sheet_id_match = re.search(r'/d/([a-zA-Z0-9-_]+)', url)
     if not sheet_id_match:
         raise ValueError("Không thể tìm thấy ID Google Sheet từ URL.")
     
     sheet_id = sheet_id_match.group(1)
-    
-    # Check if there is a specific gid/sheet parameter
     gid_match = re.search(r'gid=(\d+)', url)
     gid = gid_match.group(1) if gid_match else "0"
     
-    # Download as XLSX
     export_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=xlsx&gid={gid}"
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     
@@ -137,7 +130,6 @@ def download_google_sheet(url):
     if response.status_code == 200:
         return response.content
     else:
-        # Fallback to general export
         fallback_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=xlsx"
         response = requests.get(fallback_url, headers=headers)
         if response.status_code == 200:
@@ -145,45 +137,74 @@ def download_google_sheet(url):
         else:
             raise RuntimeError(f"Không thể tải Google Sheet (Mã lỗi: {response.status_code}). Vui lòng đảm bảo quyền truy cập công khai.")
 
-def main():
-    try:
-        sys.stdout.reconfigure(encoding='utf-8')
-        sys.stderr.reconfigure(encoding='utf-8')
-    except AttributeError:
-        pass # Python 3.7+ support
-        
-    parser = argparse.ArgumentParser(description="AI Lead Scoring Automation Tool")
-    parser.add_argument("source", help="Path to raw excel file or Google Sheets URL")
-    parser.add_argument("--output", default="lead_scored_report.xlsx", help="Path to output Excel file")
-    
-    args = parser.parse_args()
-    
-    print(f"Bắt đầu xử lý dữ liệu từ nguồn: {args.source}")
-    
-    try:
-        if args.source.startswith("http://") or args.source.startswith("https://"):
-            print("Đang tải dữ liệu từ Google Sheets...")
-            sheet_content = download_google_sheet(args.source)
-            # Read from memory
-            df = pd.read_excel(sheet_content)
-        else:
-            if not os.path.exists(args.source):
-                raise FileNotFoundError(f"Không tìm thấy file nguồn cục bộ: {args.source}")
-            print("Đang đọc tệp Excel cục bộ...")
-            df = pd.read_excel(args.source)
-            
-        print(f"Đã nạp {len(df)} dòng dữ liệu.")
-        
-        # Run Lead Scoring logic
-        df_scored = run_lead_scoring(df)
-        
-        # Export to Excel
-        df_scored.to_excel(args.output, index=False)
-        print(f"Đã chấm điểm hoàn tất! Kết quả được ghi lại tại: {args.output}")
-        
-    except Exception as e:
-        print(f"Lỗi trong quá trình thực hiện: {str(e)}", file=sys.stderr)
-        sys.exit(1)
+# Streamlit App UI
+st.set_page_config(page_title="AI Lead Scoring System", page_icon="🤖", layout="wide")
 
-if __name__ == "__main__":
-    main()
+st.title("🤖 AI Lead Scoring & Automation System")
+st.markdown("Hệ thống tự động chấm điểm khách hàng tiềm năng ngành Bất động sản dựa trên mô tả nhu cầu.")
+
+# Sidebar configuration
+st.sidebar.header("Nguồn dữ liệu")
+data_source = st.sidebar.radio("Chọn hình thức nạp dữ liệu:", ("Nhập link Google Sheets", "Tải lên tệp Excel (.xlsx)"))
+
+df = None
+
+if data_source == "Nhập link Google Sheets":
+    sheet_url = st.sidebar.text_input("Link Google Sheets:", "https://docs.google.com/spreadsheets/d/1hRvHE6RXm1peVG07avfApPEHocOcPld9IA94hE3vUGE/edit?gid=0#gid=0")
+    if st.sidebar.button("Nạp dữ liệu từ Sheets"):
+        try:
+            with st.spinner("Đang tải dữ liệu từ Google Sheets..."):
+                content = download_google_sheet(sheet_url)
+                df = pd.read_excel(io.BytesIO(content))
+                st.success("Tải dữ liệu từ Google Sheets thành công!")
+        except Exception as e:
+            st.error(f"Lỗi: {str(e)}. Hãy chắc chắn rằng Google Sheet đã được cài đặt chế độ chia sẻ công khai.")
+else:
+    uploaded_file = st.sidebar.file_uploader("Chọn tệp Excel:", type=["xlsx", "xls"])
+    if uploaded_file is not None:
+        try:
+            df = pd.read_excel(uploaded_file)
+            st.success("Tải tệp Excel lên thành công!")
+        except Exception as e:
+            st.error(f"Lỗi đọc file: {str(e)}")
+
+# Process data if loaded
+if df is not None:
+    st.subheader("📊 Dữ liệu thô đã nạp")
+    st.dataframe(df.head(10), use_container_width=True)
+    
+    if st.button("🚀 Chạy chấm điểm tự động"):
+        with st.spinner("Đang chạy thuật toán chấm điểm..."):
+            df_scored = run_lead_scoring(df)
+            
+            # Show Metrics
+            total_leads = len(df_scored)
+            vip_count = len(df_scored[df_scored["Phân loại"] == "VIP/Siêu tiềm năng"])
+            pot_count = len(df_scored[df_scored["Phân loại"] == "Tiềm năng"])
+            junk_count = len(df_scored[df_scored["Phân loại"] == "Không tiềm năng"])
+            
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("Tổng số Lead", total_leads)
+            col2.metric("VIP/Siêu Tiềm Năng", vip_count)
+            col3.metric("Tiềm Năng", pot_count)
+            col4.metric("Không Tiềm Năng", junk_count)
+            
+            st.subheader("🎯 Kết quả phân loại & Chấm điểm (Human-in-the-loop)")
+            
+            # Interactive editor
+            edited_df = st.data_editor(df_scored, num_rows="dynamic", use_container_width=True)
+            
+            # Export to Excel in memory for download
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                edited_df.to_excel(writer, index=False, sheet_name='Scored Leads')
+            processed_data = output.getvalue()
+            
+            st.download_button(
+                label="📥 Tải xuống kết quả Excel bàn giao",
+                data=processed_data,
+                file_name="lead_scored_report.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+else:
+    st.info("Vui lòng cấu hình nguồn dữ liệu ở thanh bên (Sidebar) để bắt đầu.")
