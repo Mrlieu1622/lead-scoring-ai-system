@@ -4,7 +4,6 @@ import pandas as pd
 import requests
 import streamlit as st
 import io
-import base64
 
 # Core Lead Scoring Logic
 def clean_text(text):
@@ -13,6 +12,7 @@ def clean_text(text):
     return text.strip().lower()
 
 def extract_budget(text):
+    # Match pattern like "20 tỷ", "35 tỷ", "20ty", etc.
     matches = re.findall(r'(\d+)\s*(?:tỷ|ty|tỉ)', text)
     if matches:
         return [int(m) for m in matches]
@@ -158,48 +158,23 @@ def download_google_sheet(url):
         else:
             raise RuntimeError(f"Không thể tải Google Sheet (Mã lỗi: {response.status_code}). Vui lòng đảm bảo quyền truy cập công khai.")
 
-# Function to encode image to base64
-def get_base64_image(image_path):
-    if os.path.exists(image_path):
-        with open(image_path, "rb") as img_file:
-            return base64.b64encode(img_file.read()).decode()
-    return ""
-
 # Streamlit App Config & Premium UI Customization
 st.set_page_config(page_title="AI Lead Scoring - TM Priority", page_icon="👑", layout="wide")
 
-# Resolve background image path and encode it
-bg_path = "01_dau_vao/B7/premium_gold_bg.png"
-if not os.path.exists(bg_path):
-    bg_path = "premium_gold_bg.png"
-
-bin_str = get_base64_image(bg_path)
-bg_style = ""
-if bin_str:
-    bg_style = f"""
-    [data-testid="stAppViewContainer"] {{
-        background-image: url("data:image/png;base64,{bin_str}");
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-    }}
-    """
-
-# CSS Injection for Premium Dark Bronze & Matte Black Custom Theme
-st.markdown(f"""
+# CSS Injection for Clean, Ultra-Premium Matte Obsidian & Bronze Aura Background (Simple but luxury)
+st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
     
-    {bg_style}
-    
-    /* Global App Container Override */
-    .reportview-container {{
+    /* Premium Minimal Matte Obsidian Background with warm gold glow */
+    [data-testid="stAppViewContainer"] {
+        background: radial-gradient(circle at 50% 30%, #151311 0%, #0a0909 100%) !important;
         font-family: 'Outfit', sans-serif;
-    }}
+    }
     
-    /* Premium Header styling */
-    .main-title {{
-        font-size: 2.5rem;
+    /* Header typography */
+    .main-title {
+        font-size: 2.6rem;
         font-weight: 800;
         color: #ffffff;
         letter-spacing: 1px;
@@ -207,78 +182,98 @@ st.markdown(f"""
         display: flex;
         align-items: center;
         gap: 10px;
-    }}
+    }
     
-    .main-title span {{
-        color: #d97706; /* Premium Bronze/Gold */
-    }}
+    .main-title span {
+        color: #d97706; /* Bronze/Gold */
+    }
     
-    .subtitle {{
+    .subtitle {
         font-size: 1.05rem;
         color: #94a3b8;
         border-left: 3px solid #d97706;
         padding-left: 12px;
         margin-bottom: 2rem;
-    }}
+    }
     
-    /* Obsidian Cards with subtle bronze tops */
-    .metric-card {{
-        background: rgba(15, 23, 42, 0.75);
+    /* Clean Obsidian Cards */
+    .metric-card {
+        background: rgba(15, 23, 42, 0.7);
         border: 1px solid rgba(255, 255, 255, 0.05);
-        border-top: 4px solid #d97706; /* Top Gold Line */
-        border-radius: 12px;
+        border-top: 4px solid #d97706; /* Elegant Top Gold Border */
+        border-radius: 14px;
         padding: 1.4rem;
         backdrop-filter: blur(12px);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         transition: all 0.3s ease;
-    }}
+    }
     
-    .metric-card:hover {{
+    .metric-card:hover {
         transform: translateY(-3px);
         box-shadow: 0 8px 30px rgba(217, 119, 6, 0.15);
-        border-color: rgba(217, 119, 6, 0.3);
-    }}
+        border-color: rgba(217, 119, 6, 0.2);
+    }
     
-    .metric-label {{
+    .metric-label {
         font-size: 0.85rem;
         color: #94a3b8;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.7px;
-    }}
+    }
     
-    .metric-val {{
+    .metric-val {
         font-size: 2.3rem;
         font-weight: 800;
         color: #ffffff;
         margin-top: 0.4rem;
-    }}
+    }
     
-    /* Premium Gold/Bronze Button Customization */
-    .stButton>button {{
-        background: linear-gradient(135deg, #d97706, #78350f) !important;
+    /* Rounded Buttons (Bo tròn nút) */
+    .stButton>button, .stDownloadButton>button {
+        background: linear-gradient(135deg, #d97706, #92400e) !important;
         color: white !important;
-        border: 1px solid #d97706 !important;
-        border-radius: 8px !important;
-        padding: 0.6rem 2rem !important;
+        border: none !important;
+        border-radius: 9999px !important; /* Fully Rounded pill shape */
+        padding: 0.6rem 2.2rem !important;
         font-weight: 700 !important;
         letter-spacing: 0.5px !important;
-        transition: all 0.25s ease !important;
-        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3) !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2) !important;
         text-transform: uppercase !important;
-    }}
+    }
     
-    .stButton>button:hover {{
-        background: #d97706 !important;
-        box-shadow: 0 6px 22px rgba(217, 119, 6, 0.5) !important;
+    .stButton>button:hover, .stDownloadButton>button:hover {
+        box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4) !important;
         transform: translateY(-2px) !important;
-    }}
+    }
+    
+    /* Rounded widgets: input fields, select boxes */
+    .stTextInput>div>div>input, .stSelectbox>div>div>div {
+        border-radius: 12px !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        color: #ffffff !important;
+    }
+    
+    /* Rounded Dropzone */
+    [data-testid="stFileUploadDropzone"] {
+        border-radius: 16px !important;
+        border: 2px dashed rgba(217, 119, 6, 0.3) !important;
+        background-color: rgba(15, 23, 42, 0.4) !important;
+        transition: all 0.3s ease;
+    }
+    
+    [data-testid="stFileUploadDropzone"]:hover {
+        border-color: #d97706 !important;
+        background-color: rgba(15, 23, 42, 0.6) !important;
+    }
     
     /* Sidebar customization (Clean Premium Sidebar) */
-    [data-testid="stSidebar"] {{
-        background-color: #0f172a !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.08);
-    }}
+    [data-testid="stSidebar"] {
+        background-color: #0c0a09 !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -329,7 +324,7 @@ else:
 if 'df_scored' in st.session_state:
     df_scored = st.session_state.df_scored
     
-    # Techcombank 3-Column Dashboard Metrics as requested
+    # 3-Column Dashboard Metrics as requested
     total_leads = len(df_scored)
     vip_count = len(df_scored[df_scored["Phân loại"] == "VIP/Siêu tiềm năng"])
     junk_count = len(df_scored[df_scored["Phân loại"] == "Không tiềm năng"])
@@ -379,7 +374,7 @@ if 'df_scored' in st.session_state:
         
     # Actions right below the filter block (Techcombank Brand Action Group)
     st.markdown("##### ⚙️ GIAO DỊCH VIÊN PHÊ DUYỆT NHANH:")
-    act_col1, act_col2, act_col3 = st.columns([1, 1, 4])
+    act_col1, act_col2, act_col3 = st.columns([1.2, 1.2, 4])
     with act_col1:
         if st.button("✅ Phê Duyệt"):
             for idx, row in filtered_df.iterrows():
@@ -416,7 +411,7 @@ if 'df_scored' in st.session_state:
     processed_data = output.getvalue()
     
     # Footer Action Buttons
-    dl_col, tip_col = st.columns([1.5, 4])
+    dl_col, tip_col = st.columns([1.8, 4])
     with dl_col:
         st.download_button(
             label="📥 Xuất File Excel Bàn Giao",
@@ -432,58 +427,72 @@ else:
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.divider()
 
-# Audit Table rendering matching user's image request
+# Audit Table rendering matching user's image request with color-coded badges
 st.markdown("""
-<div style="background-color: #E31837; padding: 25px; border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-    <h3 style="margin-top: 0; color: white; display: flex; align-items: center; gap: 10px; font-weight: 700;">📋 Bảng Tổng kết Kiểm tra (Audit)</h3>
+<div style="background-color: rgba(30, 41, 59, 0.6); padding: 25px; border-radius: 16px; color: white; font-family: 'Outfit', sans-serif; box-shadow: 0 8px 32px rgba(0,0,0,0.3); border: 1px solid rgba(255, 255, 255, 0.08);">
+    <h3 style="margin-top: 0; color: white; display: flex; align-items: center; gap: 10px; font-weight: 800;">📋 Bảng Tổng kết Kiểm tra (Audit)</h3>
     <p style="font-size: 0.95rem; opacity: 0.9; margin-bottom: 20px;">Học viên phải điền được bảng này mới được coi là hoàn thành bài tập.</p>
     <table style="width: 100%; border-collapse: collapse; color: white; font-size: 1rem;">
         <thead>
-            <tr style="border-bottom: 2px solid rgba(255,255,255,0.3); text-align: left;">
-                <th style="padding: 10px; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">Thành tố</th>
-                <th style="padding: 10px; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">Tên File/Công cụ</th>
-                <th style="padding: 10px; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">Mô tả</th>
+            <tr style="border-bottom: 2px solid rgba(255,255,255,0.15); text-align: left;">
+                <th style="padding: 12px 10px; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.7px; color: #94a3b8;">Thành tố</th>
+                <th style="padding: 12px 10px; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.7px; color: #94a3b8;">Tên File/Công cụ</th>
+                <th style="padding: 12px 10px; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.7px; color: #94a3b8;">Mô tả</th>
             </tr>
         </thead>
         <tbody>
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15);">
-                <td style="padding: 12px 10px; font-weight: 700;">1. Input</td>
-                <td style="padding: 12px 10px;">Google Sheets</td>
-                <td style="padding: 12px 10px;">500 khách hàng BĐS</td>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <td style="padding: 14px 10px; font-weight: 700; color: #cbd5e1;">1. Input</td>
+                <td style="padding: 14px 10px;">
+                    <span style="background-color: rgba(16, 185, 129, 0.15); color: #34d399; padding: 4px 10px; border-radius: 9999px; font-weight: 600; font-size: 0.85rem; border: 1px solid rgba(16, 185, 129, 0.3);">Google Sheets</span>
+                </td>
+                <td style="padding: 14px 10px; color: #e2e8f0;">500 khách hàng BĐS</td>
             </tr>
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15);">
-                <td style="padding: 12px 10px; font-weight: 700;">2. Agent</td>
-                <td style="padding: 12px 10px;">Logic chấm điểm</td>
-                <td style="padding: 12px 10px;">Tự động quét mô tả</td>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <td style="padding: 14px 10px; font-weight: 700; color: #cbd5e1;">2. Agent</td>
+                <td style="padding: 14px 10px;">
+                    <span style="background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; padding: 4px 10px; border-radius: 9999px; font-weight: 600; font-size: 0.85rem; border: 1px solid rgba(245, 158, 11, 0.3);">Logic chấm điểm</span>
+                </td>
+                <td style="padding: 14px 10px; color: #e2e8f0;">Tự động quét mô tả</td>
             </tr>
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15);">
-                <td style="padding: 12px 10px; font-weight: 700;">3. Tools</td>
-                <td style="padding: 12px 10px;">Streamlit, Pandas, GitHub</td>
-                <td style="padding: 12px 10px;">Nền tảng xây dựng</td>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <td style="padding: 14px 10px; font-weight: 700; color: #cbd5e1;">3. Tools</td>
+                <td style="padding: 14px 10px;">
+                    <span style="background-color: rgba(139, 92, 246, 0.15); color: #a78bfa; padding: 4px 10px; border-radius: 9999px; font-weight: 600; font-size: 0.85rem; border: 1px solid rgba(139, 92, 246, 0.3);">Streamlit, Pandas, GitHub</span>
+                </td>
+                <td style="padding: 14px 10px; color: #e2e8f0;">Nền tảng xây dựng</td>
             </tr>
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15);">
-                <td style="padding: 12px 10px; font-weight: 700;">4. Knowledge</td>
-                <td style="padding: 12px 10px;">tieu_chi_cham_diem.txt</td>
-                <td style="padding: 12px 10px;">Quy tắc +50đ / -50đ</td>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <td style="padding: 14px 10px; font-weight: 700; color: #cbd5e1;">4. Knowledge</td>
+                <td style="padding: 14px 10px;">
+                    <span style="background-color: rgba(236, 72, 153, 0.15); color: #f472b6; padding: 4px 10px; border-radius: 9999px; font-weight: 600; font-size: 0.85rem; border: 1px solid rgba(236, 72, 153, 0.3);">tieu_chi_cham_diem.txt</span>
+                </td>
+                <td style="padding: 14px 10px; color: #e2e8f0;">Quy tắc +50đ / -50đ</td>
             </tr>
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15);">
-                <td style="padding: 12px 10px; font-weight: 700;">5. Memory</td>
-                <td style="padding: 12px 10px;">st.session_state</td>
-                <td style="padding: 12px 10px;">Ghi nhớ trạng thái</td>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <td style="padding: 14px 10px; font-weight: 700; color: #cbd5e1;">5. Memory</td>
+                <td style="padding: 14px 10px;">
+                    <span style="background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 4px 10px; border-radius: 9999px; font-weight: 600; font-size: 0.85rem; border: 1px solid rgba(59, 130, 246, 0.3);">st.session_state</span>
+                </td>
+                <td style="padding: 14px 10px; color: #e2e8f0;">Ghi nhớ trạng thái</td>
             </tr>
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.15);">
-                <td style="padding: 12px 10px; font-weight: 700;">6. Workflow</td>
-                <td style="padding: 12px 10px;">AI → Người duyệt → Excel</td>
-                <td style="padding: 12px 10px;">Human Checkpoint</td>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <td style="padding: 14px 10px; font-weight: 700; color: #cbd5e1;">6. Workflow</td>
+                <td style="padding: 14px 10px;">
+                    <span style="background-color: rgba(14, 165, 233, 0.15); color: #38bdf8; padding: 4px 10px; border-radius: 9999px; font-weight: 600; font-size: 0.85rem; border: 1px solid rgba(14, 165, 233, 0.3);">AI → Người duyệt → Excel</span>
+                </td>
+                <td style="padding: 14px 10px; color: #e2e8f0;">Human Checkpoint</td>
             </tr>
             <tr style="border-bottom: none;">
-                <td style="padding: 12px 10px; font-weight: 700;">7. Output</td>
-                <td style="padding: 12px 10px;">File Excel Bàn Giao</td>
-                <td style="padding: 12px 10px;">Dữ liệu sạch cho Sales</td>
+                <td style="padding: 14px 10px; font-weight: 700; color: #cbd5e1;">7. Output</td>
+                <td style="padding: 14px 10px;">
+                    <span style="background-color: rgba(20, 184, 166, 0.15); color: #2dd4bf; padding: 4px 10px; border-radius: 9999px; font-weight: 600; font-size: 0.85rem; border: 1px solid rgba(20, 184, 166, 0.3);">File Excel Bàn Giao</span>
+                </td>
+                <td style="padding: 14px 10px; color: #e2e8f0;">Dữ liệu sạch cho Sales</td>
             </tr>
         </tbody>
     </table>
-    <div style="background-color: #FEF3C7; color: #92400E; padding: 14px; border-radius: 8px; margin-top: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; border: 1px solid #FDE68A; font-size: 0.95rem;">
+    <div style="background-color: rgba(254, 243, 199, 0.1); color: #fbbf24; padding: 14px; border-radius: 10px; margin-top: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(251, 191, 36, 0.3); font-size: 0.95rem;">
         ✅ Hoàn thành đủ 7 thành tố = Vượt qua Buổi 7!
     </div>
 </div>
