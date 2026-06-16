@@ -4,6 +4,7 @@ import pandas as pd
 import requests
 import streamlit as st
 import io
+import base64
 
 # Core Lead Scoring Logic
 def clean_text(text):
@@ -157,21 +158,47 @@ def download_google_sheet(url):
         else:
             raise RuntimeError(f"Không thể tải Google Sheet (Mã lỗi: {response.status_code}). Vui lòng đảm bảo quyền truy cập công khai.")
 
-# Streamlit App Config & Premium UI Customization (Techcombank Style)
-st.set_page_config(page_title="AI Lead Scoring - Techcombank Premium", page_icon="🏦", layout="wide")
+# Function to encode image to base64
+def get_base64_image(image_path):
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    return ""
 
-# CSS Injection for Techcombank Signature Premium Red & Dark Charcoal Theme
-st.markdown("""
+# Streamlit App Config & Premium UI Customization
+st.set_page_config(page_title="AI Lead Scoring - TM Priority", page_icon="👑", layout="wide")
+
+# Resolve background image path and encode it
+bg_path = "01_dau_vao/B7/premium_gold_bg.png"
+if not os.path.exists(bg_path):
+    bg_path = "premium_gold_bg.png"
+
+bin_str = get_base64_image(bg_path)
+bg_style = ""
+if bin_str:
+    bg_style = f"""
+    [data-testid="stAppViewContainer"] {{
+        background-image: url("data:image/png;base64,{bin_str}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }}
+    """
+
+# CSS Injection for Premium Dark Bronze & Matte Black Custom Theme
+st.markdown(f"""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
     
-    /* Global App Container Override */
-    .reportview-container {
-        font-family: 'Outfit', sans-serif;
-    }
+    {bg_style}
     
-    /* Techcombank Corporate Premium Header */
-    .main-title {
+    /* Global App Container Override */
+    .reportview-container {{
+        font-family: 'Outfit', sans-serif;
+    }}
+    
+    /* Premium Header styling */
+    .main-title {{
         font-size: 2.5rem;
         font-weight: 800;
         color: #ffffff;
@@ -180,96 +207,84 @@ st.markdown("""
         display: flex;
         align-items: center;
         gap: 10px;
-    }
+    }}
     
-    .main-title span {
-        color: #EB1F3A; /* Techcombank Red */
-    }
+    .main-title span {{
+        color: #d97706; /* Premium Bronze/Gold */
+    }}
     
-    .subtitle {
+    .subtitle {{
         font-size: 1.05rem;
         color: #94a3b8;
-        border-left: 3px solid #EB1F3A;
+        border-left: 3px solid #d97706;
         padding-left: 12px;
         margin-bottom: 2rem;
-    }
+    }}
     
-    /* Techcombank Obsidian Cards */
-    .metric-card {
-        background: #1e293b;
+    /* Obsidian Cards with subtle bronze tops */
+    .metric-card {{
+        background: rgba(15, 23, 42, 0.75);
         border: 1px solid rgba(255, 255, 255, 0.05);
-        border-top: 4px solid #EB1F3A; /* Top Red Line */
+        border-top: 4px solid #d97706; /* Top Gold Line */
         border-radius: 12px;
         padding: 1.4rem;
+        backdrop-filter: blur(12px);
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         transition: all 0.3s ease;
-    }
+    }}
     
-    .metric-card:hover {
+    .metric-card:hover {{
         transform: translateY(-3px);
-        box-shadow: 0 8px 30px rgba(235, 31, 58, 0.15);
-        border-color: rgba(235, 31, 58, 0.3);
-    }
+        box-shadow: 0 8px 30px rgba(217, 119, 6, 0.15);
+        border-color: rgba(217, 119, 6, 0.3);
+    }}
     
-    .metric-label {
+    .metric-label {{
         font-size: 0.85rem;
         color: #94a3b8;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.7px;
-    }
+    }}
     
-    .metric-val {
+    .metric-val {{
         font-size: 2.3rem;
         font-weight: 800;
         color: #ffffff;
         margin-top: 0.4rem;
-    }
+    }}
     
-    /* Techcombank Red Button Customization */
-    .stButton>button {
-        background: linear-gradient(135deg, #EB1F3A, #b91c1c) !important;
+    /* Premium Gold/Bronze Button Customization */
+    .stButton>button {{
+        background: linear-gradient(135deg, #d97706, #78350f) !important;
         color: white !important;
-        border: 1px solid #EB1F3A !important;
+        border: 1px solid #d97706 !important;
         border-radius: 8px !important;
         padding: 0.6rem 2rem !important;
         font-weight: 700 !important;
         letter-spacing: 0.5px !important;
         transition: all 0.25s ease !important;
-        box-shadow: 0 4px 12px rgba(235, 31, 58, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3) !important;
         text-transform: uppercase !important;
-    }
+    }}
     
-    .stButton>button:hover {
-        background: #EB1F3A !important;
-        box-shadow: 0 6px 22px rgba(235, 31, 58, 0.5) !important;
+    .stButton>button:hover {{
+        background: #d97706 !important;
+        box-shadow: 0 6px 22px rgba(217, 119, 6, 0.5) !important;
         transform: translateY(-2px) !important;
-    }
+    }}
     
-    /* Sidebar customization (Techcombank Brand Sidebar) */
-    [data-testid="stSidebar"] {
+    /* Sidebar customization (Clean Premium Sidebar) */
+    [data-testid="stSidebar"] {{
         background-color: #0f172a !important;
         border-right: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    
-    /* Styled widgets container */
-    .stCheckbox {
-        font-weight: 600;
-    }
+    }}
 </style>
 """, unsafe_allow_html=True)
 
-# Sidebar Logo Integration & Brand Banner
-logo_path = "01_dau_vao/B7/techcombank_priority_logo.png"
-if not os.path.exists(logo_path):
-    logo_path = "techcombank_priority_logo.png"
-
-if os.path.exists(logo_path):
-    st.sidebar.image(logo_path, use_container_width=True)
-
-# Premium Header (Techcombank Brand Identity with Emojis)
-st.markdown("<div class='main-title'>🏦 TECHCOMBANK <span>PRIORITY</span> 🏡</div>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>Hệ thống Định hạng Khách hàng cao cấp và phân tích Tiềm năng AI Lead Scoring (Lĩnh vực Bất động sản 🏡)</div>", unsafe_allow_html=True)
+# Premium Header (TM Priority Emojis)
+st.markdown("<div class='main-title'>👑 TM <span>PRIORITY</span> 🏡</div>", unsafe_allow_html=True)
+st.markdown("<div class='subtitle'>Hệ thống Định hạng Khách hàng cao cấp và phân tích Tiềm năng AI Lead Scoring (Bất động sản 🏡)</div>", unsafe_allow_html=True)
 
 # Sidebar Config
 st.sidebar.markdown("### ⚙️ HỆ THỐNG GIAO DỊCH")
@@ -412,7 +427,7 @@ if 'df_scored' in st.session_state:
     with tip_col:
         st.info("💡 Bạn có thể trực tiếp nhấp vào ô bất kỳ trong bảng dữ liệu để chỉnh sửa điểm, sửa phân loại và duyệt hồ sơ trước khi xuất file.")
 else:
-    st.info("👋 Chào mừng bạn đến với hệ thống giao dịch Techcombank Priority. Vui lòng nạp thông tin khách hàng ở thanh cấu hình bên trái để bắt đầu.")
+    st.info("👋 Chào mừng bạn đến với hệ thống giao dịch TM Priority. Vui lòng nạp thông tin khách hàng ở thanh cấu hình bên trái để bắt đầu.")
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.divider()
