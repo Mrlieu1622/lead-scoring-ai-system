@@ -158,99 +158,115 @@ def download_google_sheet(url):
         else:
             raise RuntimeError(f"Không thể tải Google Sheet (Mã lỗi: {response.status_code}). Vui lòng đảm bảo quyền truy cập công khai.")
 
-# Streamlit App Config & Premium UI Customization
-st.set_page_config(page_title="AI Lead Scoring System", page_icon="🤖", layout="wide")
+# Streamlit App Config & Premium UI Customization (Techcombank Style)
+st.set_page_config(page_title="AI Lead Scoring - Techcombank Premium", page_icon="🏦", layout="wide")
 
-# CSS Injection for Premium Dark Theme
+# CSS Injection for Techcombank Signature Premium Red & Dark Charcoal Theme
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
     
-    /* General styles */
+    /* Global App Container Override */
     .reportview-container {
         font-family: 'Outfit', sans-serif;
     }
     
-    /* Title and Subtitle */
+    /* Techcombank Corporate Premium Header */
     .main-title {
-        font-size: 2.8rem;
+        font-size: 2.5rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #a78bfa, #38bdf8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: #ffffff;
+        letter-spacing: 1px;
         margin-bottom: 0.2rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .main-title span {
+        color: #EB1F3A; /* Techcombank Red */
     }
     
     .subtitle {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         color: #94a3b8;
+        border-left: 3px solid #EB1F3A;
+        padding-left: 12px;
         margin-bottom: 2rem;
     }
     
-    /* Glassmorphism Cards */
+    /* Techcombank Obsidian Cards */
     .metric-card {
-        background: rgba(30, 41, 59, 0.45);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 1.5rem;
-        backdrop-filter: blur(12px);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        background: #1e293b;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-top: 4px solid #EB1F3A; /* Top Red Line */
+        border-radius: 12px;
+        padding: 1.4rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         transition: all 0.3s ease;
-        margin-bottom: 1rem;
     }
     
     .metric-card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(255, 255, 255, 0.15);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(235, 31, 58, 0.15);
+        border-color: rgba(235, 31, 58, 0.3);
     }
     
     .metric-label {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: #94a3b8;
-        font-weight: 500;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.7px;
     }
     
     .metric-val {
-        font-size: 2.2rem;
-        font-weight: 700;
+        font-size: 2.3rem;
+        font-weight: 800;
         color: #ffffff;
-        margin-top: 0.5rem;
+        margin-top: 0.4rem;
     }
     
-    /* Buttons Customization */
+    /* Techcombank Red Button Customization */
     .stButton>button {
-        background: linear-gradient(135deg, #8b5cf6, #3b82f6) !important;
+        background: linear-gradient(135deg, #EB1F3A, #b91c1c) !important;
         color: white !important;
-        border: none !important;
-        border-radius: 10px !important;
-        padding: 0.6rem 1.8rem !important;
-        font-weight: 600 !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        box-shadow: 0 4px 14px rgba(139, 92, 246, 0.2) !important;
+        border: 1px solid #EB1F3A !important;
+        border-radius: 8px !important;
+        padding: 0.6rem 2rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.5px !important;
+        transition: all 0.25s ease !important;
+        box-shadow: 0 4px 12px rgba(235, 31, 58, 0.3) !important;
+        text-transform: uppercase !important;
     }
     
     .stButton>button:hover {
-        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4) !important;
+        background: #EB1F3A !important;
+        box-shadow: 0 6px 22px rgba(235, 31, 58, 0.5) !important;
         transform: translateY(-2px) !important;
     }
     
-    /* Sidebar customization */
+    /* Sidebar customization (Techcombank Brand Sidebar) */
     [data-testid="stSidebar"] {
         background-color: #0f172a !important;
         border-right: 1px solid rgba(255, 255, 255, 0.08);
     }
+    
+    /* Styled widgets container */
+    .stCheckbox {
+        font-weight: 600;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# Premium Header
-st.markdown("<div class='main-title'>🤖 AI LEAD SCORING SYSTEM</div>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>Hệ thống chấm điểm khách hàng tiềm năng cao cấp ứng dụng quy tắc thông minh & Human-in-the-loop</div>", unsafe_allow_html=True)
+# Premium Header (Techcombank Brand Identity)
+st.markdown("<div class='main-title'>🏦 TECHCOMBANK <span>PRIORITY</span></div>", unsafe_allow_html=True)
+st.markdown("<div class='subtitle'>Hệ thống Định hạng Khách hàng cao cấp và phân tích Tiềm năng AI Lead Scoring</div>", unsafe_allow_html=True)
 
 # Sidebar Config
-st.sidebar.markdown("### ⚙️ NGUỒN DỮ LIỆU ĐẦU VÀO")
-data_source = st.sidebar.radio("Hình thức nạp dữ liệu:", ("Nhập link Google Sheets", "Tải lên tệp Excel (.xlsx)"))
+st.sidebar.markdown("### ⚙️ HỆ THỐNG GIAO DỊCH")
+data_source = st.sidebar.radio("Hình thức nạp hồ sơ khách hàng:", ("Nhập link Google Sheets", "Tải lên tệp Excel (.xlsx)"))
 
 def reset_data_state():
     if 'df_scored' in st.session_state:
@@ -260,38 +276,38 @@ df = None
 
 # Logic to load data
 if data_source == "Nhập link Google Sheets":
-    sheet_url = st.sidebar.text_input("Link Google Sheets:", "https://docs.google.com/spreadsheets/d/1hRvHE6RXm1peVG07avfApPEHocOcPld9IA94hE3vUGE/edit?gid=0#gid=0", on_change=reset_data_state)
-    if st.sidebar.button("⚡ Tải & Chấm Điểm"):
+    sheet_url = st.sidebar.text_input("Đường dẫn Google Sheets:", "https://docs.google.com/spreadsheets/d/1hRvHE6RXm1peVG07avfApPEHocOcPld9IA94hE3vUGE/edit?gid=0#gid=0", on_change=reset_data_state)
+    if st.sidebar.button("⚡ TẢI DỮ LIỆU & ĐỊNH HẠNG"):
         try:
-            with st.spinner("Đang kết nối và chấm điểm dữ liệu từ Google Sheets..."):
+            with st.spinner("Đang truy xuất thông tin từ mạng giao dịch..."):
                 content = download_google_sheet(sheet_url)
                 df = pd.read_excel(io.BytesIO(content))
                 if len(df) > 0:
                     st.session_state.df_scored = run_lead_scoring(df)
-                    st.success("Tải dữ liệu và phân loại tự động thành công!")
+                    st.success("Liên kết và phân tích dữ liệu Google Sheets thành công!")
                 else:
-                    st.error("Bảng tính Google Sheets không chứa bất kỳ dòng dữ liệu nào.")
+                    st.error("Dữ liệu bảng tính trống.")
         except Exception as e:
-            st.error(f"Lỗi truy xuất: {str(e)}. Vui lòng đảm bảo Google Sheet được đặt ở chế độ chia sẻ công khai ('Bất kỳ ai có liên kết đều xem được').")
+            st.error(f"Không thể truy xuất: {str(e)}. Hãy đặt Google Sheet ở chế độ công khai để ứng dụng có quyền đọc.")
 else:
-    uploaded_file = st.sidebar.file_uploader("Chọn tệp Excel đầu vào:", type=["xlsx", "xls"], on_change=reset_data_state)
+    uploaded_file = st.sidebar.file_uploader("Nạp báo cáo Excel đầu vào:", type=["xlsx", "xls"], on_change=reset_data_state)
     if uploaded_file is not None:
         try:
             df = pd.read_excel(uploaded_file)
             if len(df) > 0:
                 if 'df_scored' not in st.session_state:
                     st.session_state.df_scored = run_lead_scoring(df)
-                    st.success("Nạp file Excel và tự động chấm điểm thành công!")
+                    st.success("Tải tệp và phân tách hồ sơ khách hàng thành công!")
             else:
-                st.error("Tệp Excel tải lên không chứa dữ liệu.")
+                st.error("Tệp Excel không chứa thông tin.")
         except Exception as e:
-            st.error(f"Lỗi khi xử lý file Excel: {str(e)}")
+            st.error(f"Lỗi phân tích tệp: {str(e)}")
 
 # Process data if loaded in session state
 if 'df_scored' in st.session_state:
     df_scored = st.session_state.df_scored
     
-    # Beautiful Custom Cards for Stats
+    # Beautiful Custom Cards for Stats (Techcombank Luxury Theme)
     total_leads = len(df_scored)
     vip_count = len(df_scored[df_scored["Phân loại"] == "VIP/Siêu tiềm năng"])
     pot_count = len(df_scored[df_scored["Phân loại"] == "Tiềm năng"])
@@ -299,28 +315,27 @@ if 'df_scored' in st.session_state:
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.markdown(f"<div class='metric-card'><div class='metric-label'>👥 Tổng số Lead</div><div class='metric-val'>{total_leads}</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card' style='border-top: 4px solid #94a3b8;'><div class='metric-label'>👥 Tổng hồ sơ nạp</div><div class='metric-val'>{total_leads}</div></div>", unsafe_allow_html=True)
     with col2:
-        st.markdown(f"<div class='metric-card' style='border-left: 4px solid #f59e0b;'><div class='metric-label' style='color:#f59e0b;'>👑 VIP / SIÊU TIỀM NĂNG</div><div class='metric-val'>{vip_count}</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card' style='border-top: 4px solid #fbbf24;'><div class='metric-label' style='color:#fbbf24;'>👑 Hạng VIP/Priority</div><div class='metric-val'>{vip_count}</div></div>", unsafe_allow_html=True)
     with col3:
-        st.markdown(f"<div class='metric-card' style='border-left: 4px solid #3b82f6;'><div class='metric-label' style='color:#3b82f6;'>✅ TIỀM NĂNG</div><div class='metric-val'>{pot_count}</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card' style='border-top: 4px solid #60a5fa;'><div class='metric-label' style='color:#60a5fa;'>✅ Khách Tiềm Năng</div><div class='metric-val'>{pot_count}</div></div>", unsafe_allow_html=True)
     with col4:
-        st.markdown(f"<div class='metric-card' style='border-left: 4px solid #ef4444;'><div class='metric-label' style='color:#ef4444;'>🗑️ KHÔNG TIỀM NĂNG</div><div class='metric-val'>{junk_count}</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card' style='border-top: 4px solid #f87171;'><div class='metric-label' style='color:#f87171;'>🗑️ Hồ Sơ Loại Trừ</div><div class='metric-val'>{junk_count}</div></div>", unsafe_allow_html=True)
         
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Premium Filter Layout inside an expander
-    with st.expander("🔍 BỘ LỌC TÌM KIẾM NÂNG CAO", expanded=True):
+    # Premium Filter Layout inside an expander (Corporate Style)
+    with st.expander("🔍 CÔNG CỤ TRUY VẤN VÀ LỌC THÔNG TIN", expanded=True):
         filter_col1, filter_col2, filter_col3 = st.columns([2, 1, 1])
         with filter_col1:
-            search_query = st.text_input("Tìm kiếm nhanh (Họ tên, SĐT, Nhu cầu):", "").lower().strip()
+            search_query = st.text_input("Tìm kiếm theo tên khách, SĐT, hoặc chi tiết nhu cầu:", "").lower().strip()
         with filter_col2:
-            class_filter = st.selectbox("Phân loại:", ["Tất cả", "VIP/Siêu tiềm năng", "Tiềm năng", "Không tiềm năng"])
+            class_filter = st.selectbox("Lọc Hạng Khách Hàng:", ["Tất cả", "VIP/Siêu tiềm năng", "Tiềm năng", "Không tiềm năng"])
         with filter_col3:
-            status_filter = st.selectbox("Trạng thái duyệt:", ["Tất cả", "Chờ duyệt", "Đã duyệt", "Bác bỏ"])
+            status_filter = st.selectbox("Trạng Thái Duyệt Hồ Sơ:", ["Tất cả", "Chờ duyệt", "Đã duyệt", "Bác bỏ"])
             
-        # Thêm mục lọc nhanh khách tiềm năng trở lên
-        only_valuable = st.checkbox("🔥 Chỉ lọc hiển thị Khách hàng tiềm năng trở lên (Loại bỏ Khách hàng Rác)", value=False)
+        only_valuable = st.checkbox("🔥 Chỉ lọc hiển thị Hạng Khách Hàng tiềm năng & VIP trở lên (Loại bỏ các Hồ Sơ Rác)", value=False)
     
     # Apply filtering criteria
     filtered_df = df_scored.copy()
@@ -342,16 +357,16 @@ if 'df_scored' in st.session_state:
     if status_filter != "Tất cả":
         filtered_df = filtered_df[filtered_df["Trạng thái duyệt"] == status_filter]
         
-    # Actions right below the filter block
-    st.markdown("##### ⚡ Thao tác nhanh trên kết quả hiển thị:")
+    # Actions right below the filter block (Techcombank Brand Action Group)
+    st.markdown("##### ⚙️ GIAO DỊCH VIÊN PHÊ DUYỆT NHANH:")
     act_col1, act_col2, act_col3 = st.columns([1, 1, 4])
     with act_col1:
-        if st.button("✅ Duyệt Nhanh"):
+        if st.button("✅ Phê Duyệt"):
             for idx, row in filtered_df.iterrows():
                 match_idx = st.session_state.df_scored[st.session_state.df_scored["Mã KH"] == row["Mã KH"]].index
                 if len(match_idx) > 0:
                     st.session_state.df_scored.at[match_idx[0], "Trạng thái duyệt"] = "Đã duyệt"
-            st.success("Đã phê duyệt toàn bộ dòng đang hiển thị!")
+            st.success("Đã chuyển toàn bộ hồ sơ đang hiển thị sang trạng thái Phê Duyệt!")
             st.rerun()
     with act_col2:
         if st.button("❌ Bác Bỏ"):
@@ -359,10 +374,10 @@ if 'df_scored' in st.session_state:
                 match_idx = st.session_state.df_scored[st.session_state.df_scored["Mã KH"] == row["Mã KH"]].index
                 if len(match_idx) > 0:
                     st.session_state.df_scored.at[match_idx[0], "Trạng thái duyệt"] = "Bác bỏ"
-            st.warning("Đã bác bỏ toàn bộ dòng đang hiển thị!")
+            st.warning("Đã chuyển toàn bộ hồ sơ đang hiển thị sang trạng thái Bác Bỏ!")
             st.rerun()
             
-    st.subheader(f"🎯 Danh sách kết quả ({len(filtered_df)} dòng hiển thị)")
+    st.subheader(f"📊 Bảng dữ liệu định hạng phân loại ({len(filtered_df)} khách hàng)")
     
     # Render interactive editor
     edited_filtered_df = st.data_editor(filtered_df, use_container_width=True)
@@ -381,15 +396,15 @@ if 'df_scored' in st.session_state:
     processed_data = output.getvalue()
     
     # Footer Action Buttons
-    dl_col, tip_col = st.columns([1, 4])
+    dl_col, tip_col = st.columns([1.5, 4])
     with dl_col:
         st.download_button(
-            label="📥 Xuất Báo Cáo Excel Bàn Giao",
+            label="📥 Xuất File Excel Bàn Giao",
             data=processed_data,
             file_name="lead_scored_report.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
     with tip_col:
-        st.info("💡 Mẹo: Bạn có thể nhấp trực tiếp vào ô bất kỳ trong bảng trên để thay đổi Điểm số, Phân loại hoặc Trạng thái duyệt theo ý muốn.")
+        st.info("💡 Bạn có thể trực tiếp nhấp vào ô bất kỳ trong bảng dữ liệu để chỉnh sửa điểm, sửa phân loại và duyệt hồ sơ trước khi xuất file.")
 else:
-    st.info("👋 Chào mừng bạn! Vui lòng chọn nguồn dữ liệu (ở thanh bên trái) và click '⚡ Tải & Chấm Điểm' để bắt đầu.")
+    st.info("👋 Chào mừng bạn đến với hệ thống giao dịch Techcombank Priority. Vui lòng nạp thông tin khách hàng ở thanh cấu hình bên trái để bắt đầu.")
